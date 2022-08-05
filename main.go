@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"golang.org/x/net/idna"
 )
 
 func main() {
@@ -27,12 +29,17 @@ func main() {
 		"Censurfridns Denmark": "89.233.43.71:53", //IPv6: 2001:67c:28a4::
 	}
 
-	for nsName, nsIP := range nameservers {
-		resolveAndPrint(nsName, nsIP, domainName)
+	domainNamePunycode, err := idna.Display.ToASCII(domainName)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
-	fmt.Printf("Resolving %s with %20s: ", domainName, "native server")
-	ipsNative, err := net.LookupHost(domainName)
+	for nsName, nsIP := range nameservers {
+		resolveAndPrint(nsName, nsIP, domainNamePunycode)
+	}
+
+	fmt.Printf("Resolving %s with %20s: ", domainNamePunycode, "native server")
+	ipsNative, err := net.LookupHost(domainNamePunycode)
 	if err != nil {
 		fmt.Println(strings.Split(err.Error(), ": ")[1])
 		return
